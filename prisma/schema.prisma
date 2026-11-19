@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  AGENT
+  BUSINESS
+  ADMIN
+}
+
+enum ParcelStatus {
+  PENDING
+  CONFIRMED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  phone           String?
+  password        String
+  role            Role     @default(CUSTOMER)
+  createdAt       DateTime @default(now())
+  parcels         Parcel[] @relation("CustomerParcels")
+  assignedParcels Parcel[] @relation("AgentParcels")
+}
+
+model Parcel {
+  id              String        @id @default(cuid())
+  trackingCode    String        @unique
+  senderName      String
+  senderPhone     String
+  recipientName   String
+  recipientPhone  String
+  pickupAddress   String
+  deliveryAddress String
+  description     String
+  weight          Float         @default(1)
+  price           Float         @default(0)
+  status          ParcelStatus  @default(PENDING)
+  notes           String?
+  customerId      String?
+  agentId         String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  customer        User?         @relation("CustomerParcels", fields: [customerId], references: [id])
+  agent           User?         @relation("AgentParcels", fields: [agentId], references: [id])
+  events          ParcelEvent[]
+}
+
+model ParcelEvent {
+  id        String       @id @default(cuid())
+  status    ParcelStatus
+  message   String
+  location  String?
+  createdAt DateTime     @default(now())
+  parcelId  String
+  parcel    Parcel       @relation(fields: [parcelId], references: [id], onDelete: Cascade)
+}

@@ -1,0 +1,10 @@
+import 'dotenv/config';
+import {PrismaClient} from '@prisma/client';
+import bcrypt from 'bcryptjs';
+const db=new PrismaClient();
+const email=process.env.ADMIN_EMAIL||'admin@tsapo.local';
+const password=process.env.ADMIN_PASSWORD||'ChangeMe123!';
+const hash=await bcrypt.hash(password,12);
+await db.user.upsert({where:{email},update:{},create:{name:process.env.ADMIN_NAME||'Tsapo Administrator',email,password:hash,role:'ADMIN'}});
+console.log(`Admin ready: ${email} (use ADMIN_PASSWORD from .env)`);
+await db.$disconnect();
