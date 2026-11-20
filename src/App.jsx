@@ -1,4 +1,4 @@
-import React,{useEffect,useState}from'react';import{Link,NavLink,Route,Routes,useNavigate,useParams}from'react-router-dom';import{ArrowRight,Package,MapPin,ShieldCheck,Truck,Menu,X,LogOut,LayoutDashboard,Search,Plus,CheckCircle2,Clock3,Users,Leaf}from'lucide-react';import{api,token}from'./api';
+import React,{useEffect,useState}from'react';import{Link,NavLink,Route,Routes,useNavigate,useParams}from'react-router-dom';import{ArrowRight,Package,MapPin,ShieldCheck,Truck,Menu,X,LogOut,LayoutDashboard,Search,Plus,CheckCircle2,Clock3,Users,Leaf}from'lucide-react';import{api,token}from'./api';import AdminDashboard from "./pages/admin/AdminDashboard";
 const money=n=>`$${Number(n||0).toFixed(2)}`;
 function Header({user,onLogout}){const[open,setOpen]=useState(false);return <header className="header"><Link to="/" className="brand"><span className="brandmark"><Package size={22}/></span><span>tsapo<span className="dot">.</span><small>MOVE WITH CONFIDENCE</small></span></Link><button className="mobile-toggle" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button><nav className={open?'nav open':'nav'}><a href="/#services">Services</a><a href="/#how">How it works</a><Link to="/track">Track parcel</Link>{user?<><Link to="/dashboard" className="nav-cta">Dashboard <ArrowRight size={16}/></Link><button className="text-button" onClick={onLogout}>Sign out</button></>:<><Link to="/login" className="nav-login">Log in</Link><Link to="/register" className="nav-cta">Get started <ArrowRight size={16}/></Link></>}</nav></header>}
 function Footer(){return <footer><div className="footer-inner"><div className="brand footer-brand"><span className="brandmark"><Package/></span><span>tsapo<span className="dot">.</span><small>MOVE WITH CONFIDENCE</small></span></div><p>Making every delivery feel effortless.</p><span>© {new Date().getFullYear()} Tsapo. All rights reserved.</span></div></footer>}
@@ -8,6 +8,8 @@ function Track(){const params=new URLSearchParams(location.search);const[code,se
 function Dashboard({user}){const[parcels,setParcels]=useState([]);const[stats,setStats]=useState(null);const[error,setError]=useState('');const[show,setShow]=useState(false);const[form,setForm]=useState({senderName:user.name,senderPhone:user.phone||'',recipientName:'',recipientPhone:'',pickupAddress:'',deliveryAddress:'',description:'',weight:'1'});const load=()=>api('/parcels').then(d=>setParcels(d.parcels)).catch(e=>setError(e.message));useEffect(()=>{load();if(user.role==='ADMIN')api('/admin/overview').then(d=>setStats(d.stats)).catch(()=>{});},[]);const create=async e=>{e.preventDefault();setError('');try{const d=await api('/parcels',{method:'POST',body:JSON.stringify(form)});setParcels([d.parcel,...parcels]);setShow(false);setForm({...form,recipientName:'',recipientPhone:'',pickupAddress:'',deliveryAddress:'',description:''})}catch(e){setError(e.message)}};return <main className="dashboard page-shell"><div className="dash-heading"><div><span className="eyebrow dark">{user.role} PORTAL</span><h1>Hello, <em>{user.name.split(' ')[0]}.</em></h1><p>Here's what's happening with your deliveries.</p></div>{user.role!=='AGENT'&&<button className="btn btn-green" onClick={()=>setShow(!show)}><Plus size={18}/> Book a parcel</button>}</div>{stats&&<div className="stats-grid">{Object.entries(stats).map(([k,v])=><div className="stat-card" key={k}><small>{k.replace(/([A-Z])/g,' $1')}</small><strong>{v}</strong></div>)}</div>}{show&&<form className="booking-card" onSubmit={create}><div className="form-heading"><div><h2>Book a delivery</h2><p>Enter the sender and recipient details.</p></div><button type="button" className="text-button" onClick={()=>setShow(false)}>Close</button></div><div className="form-grid">{[['senderName','Sender name'],['senderPhone','Sender phone'],['recipientName','Recipient name'],['recipientPhone','Recipient phone'],['pickupAddress','Pickup address'],['deliveryAddress','Delivery address'],['description','Parcel description'],['weight','Weight (kg)']].map(([k,l])=><label key={k}>{l}<input required value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})}/></label>)}</div>{error&&<div className="error">{error}</div>}<button className="btn btn-green">Submit booking <ArrowRight size={17}/></button></form>}{error&&!show&&<div className="error">{error}</div>}<div className="list-heading"><h2>{user.role==='AGENT'?'Assigned deliveries':'Your parcels'}</h2><span>{parcels.length} records</span></div>{parcels.length===0?<div className="empty-state"><Package size={36}/><h3>No parcels yet</h3><p>Your bookings and delivery updates will appear here.</p><button className="btn btn-green" onClick={()=>setShow(true)}>Book your first parcel</button></div>:<div className="parcel-list">{parcels.map(p=><div className="parcel-row" key={p.id}><span className="parcel-icon"><Package/></span><div className="parcel-info"><b>{p.trackingCode}</b><small>{p.pickupAddress} → {p.deliveryAddress}</small></div><span className={'status-pill status-'+p.status.toLowerCase()}>{p.status.replaceAll('_',' ')}</span><Link to={'/track?code='+p.trackingCode}>Details <ArrowRight size={15}/></Link>{(user.role==='ADMIN'||user.role==='AGENT')&&<StatusControl parcel={p} onDone={load}/>}</div>)}</div>}</main>}
 function StatusControl({parcel,onDone}){const[status,setStatus]=useState(parcel.status);const[busy,setBusy]=useState(false);return <div className="status-control"><select value={status} onChange={e=>setStatus(e.target.value)}>{['PENDING','CONFIRMED','PICKED_UP','IN_TRANSIT','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'].map(s=><option key={s}>{s}</option>)}</select><button disabled={busy||status===parcel.status} onClick={async()=>{setBusy(true);try{await api('/parcels/'+parcel.id+'/status',{method:'PATCH',body:JSON.stringify({status})});onDone()}catch(e){alert(e.message)}finally{setBusy(false)}}}>Update</button></div>}
 
+
+
 function AssistantChat(){
  const [open,setOpen]=useState(false);
  const [messages,setMessages]=useState([{role:'assistant',content:'Hello! I’m Tsapo Assistant. Ask me about creating an account, booking a parcel or tracking a delivery.'}]);
@@ -15,30 +17,128 @@ function AssistantChat(){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const endRef=React.useRef(null);
+
  useEffect(()=>{endRef.current?.scrollIntoView({behavior:'smooth'})},[messages,open]);
+
  const send=async e=>{
-  e?.preventDefault(); const message=draft.trim(); if(!message||busy)return;
+  e?.preventDefault();
+  const message=draft.trim();
+  if(!message||busy)return;
+
   const next=[...messages,{role:'user',content:message}];
-  setMessages(next);setDraft('');setError('');setBusy(true);
+  setMessages(next);
+  setDraft('');
+  setError('');
+  setBusy(true);
+
   try{
-   const response=await fetch('/api/assistant/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,history:messages.slice(-10)})});
+   const response=await fetch('/api/assistant/chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message,history:messages.slice(-10)})
+   });
+
    const data=await response.json().catch(()=>({}));
+
    if(!response.ok)throw new Error(data.error||'The assistant could not respond. Please try again.');
+
    setMessages(current=>[...current,{role:'assistant',content:data.answer}]);
-  }catch(err){setError(err.message||'Unable to reach Tsapo Assistant.');}
-  finally{setBusy(false)}
+  }catch(err){
+   setError(err.message||'Unable to reach Tsapo Assistant.');
+  }
+  finally{
+   setBusy(false)
+  }
  };
+
  return <div className="assistant-root">
   {open&&<section className="assistant-panel" aria-label="Tsapo Assistant chat">
-   <div className="assistant-head"><div className="assistant-avatar"><Package size={19}/></div><div><b>Tsapo Assistant</b><small><i/> Here to help</small></div><button className="assistant-close" onClick={()=>setOpen(false)} aria-label="Close chat"><X size={19}/></button></div>
-   <div className="assistant-messages">{messages.map((m,i)=><div key={i} className={'assistant-message '+m.role}>{m.content}</div>)}{busy&&<div className="assistant-message assistant"><span className="typing-dots">Thinking…</span></div>}<div ref={endRef}/></div>
+   <div className="assistant-head">
+    <div className="assistant-avatar"><Package size={19}/></div>
+    <div><b>Tsapo Assistant</b><small><i/> Here to help</small></div>
+    <button className="assistant-close" onClick={()=>setOpen(false)} aria-label="Close chat"><X size={19}/></button>
+   </div>
+
+   <div className="assistant-messages">
+    {messages.map((m,i)=><div key={i} className={'assistant-message '+m.role}>{m.content}</div>)}
+    {busy&&<div className="assistant-message assistant"><span className="typing-dots">Thinking…</span></div>}
+    <div ref={endRef}/>
+   </div>
+
    {error&&<div className="assistant-error">{error}</div>}
-   <form className="assistant-compose" onSubmit={send}><input value={draft} onChange={e=>setDraft(e.target.value)} placeholder="Ask Tsapo a question…" maxLength={1200} aria-label="Your question"/><button disabled={busy||!draft.trim()} aria-label="Send message"><ArrowRight size={18}/></button></form>
+
+   <form className="assistant-compose" onSubmit={send}>
+    <input value={draft} onChange={e=>setDraft(e.target.value)} placeholder="Ask Tsapo a question…" maxLength={1200} aria-label="Your question"/>
+    <button disabled={busy||!draft.trim()} aria-label="Send message"><ArrowRight size={18}/></button>
+   </form>
+
    <div className="assistant-disclaimer">AI support can make mistakes. Never share your password or payment details.</div>
   </section>}
-  <button className="assistant-launcher" onClick={()=>setOpen(v=>!v)} aria-label={open?'Close Tsapo Assistant':'Chat with Tsapo Assistant'}>{open?<X size={23}/>:<><span className="assistant-launch-icon"><MessageCircleIcon/></span><span>Ask Tsapo</span></>}</button>
+
+  <button className="assistant-launcher" onClick={()=>setOpen(v=>!v)} aria-label={open?'Close Tsapo Assistant':'Chat with Tsapo Assistant'}>
+   {open?<X size={23}/>:<><span className="assistant-launch-icon"><MessageCircleIcon/></span><span>Ask Tsapo</span></>}
+  </button>
  </div>
 }
-function MessageCircleIcon(){return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></svg>}
 
-export default function App(){const[user,setUser]=useState(null);const[ready,setReady]=useState(false);useEffect(()=>{if(token())api('/auth/me').then(d=>setUser(d.user)).catch(()=>localStorage.removeItem('tsapo_token')).finally(()=>setReady(true));else setReady(true)},[]);const logout=()=>{localStorage.removeItem('tsapo_token');setUser(null)};if(!ready)return <div className="loading">Loading Tsapo...</div>;return <><Header user={user} onLogout={logout}/><Routes><Route path="/" element={<Home/>}/><Route path="/login" element={<Auth mode="login" onAuth={setUser}/>}/><Route path="/register" element={<Auth mode="register" onAuth={setUser}/>}/><Route path="/track" element={<Track/>}/><Route path="/dashboard" element={user?<Dashboard user={user}/>:<Auth mode="login" onAuth={setUser}/>}/><Route path="*" element={<Home/>}/></Routes><Footer/><AssistantChat/></>}
+function MessageCircleIcon(){
+ return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/>
+ </svg>
+}
+
+export default function App(){
+ const[user,setUser]=useState(null);
+ const[ready,setReady]=useState(false);
+
+ useEffect(()=>{
+  if(token()){
+   api('/auth/me')
+    .then(d=>setUser(d.user))
+    .catch(()=>localStorage.removeItem('tsapo_token'))
+    .finally(()=>setReady(true));
+  }else{
+   setReady(true)
+  }
+ },[]);
+
+ const logout=()=>{
+  localStorage.removeItem('tsapo_token');
+  setUser(null)
+ };
+
+ if(!ready)return <div className="loading">Loading Tsapo...</div>;
+
+ return <>
+  <Header user={user} onLogout={logout}/>
+
+  <Routes>
+   <Route path="/" element={<Home/>}/>
+
+   <Route path="/login" element={<Auth mode="login" onAuth={setUser}/>}/>
+
+   <Route path="/register" element={<Auth mode="register" onAuth={setUser}/>}/>
+
+   <Route path="/track" element={<Track/>}/>
+
+   <Route path="/dashboard" element={user?<Dashboard user={user}/>:<Auth mode="login" onAuth={setUser}/>}/>
+
+   {/* Admin Dashboard */}
+   <Route
+    path="/admin"
+    element={
+     user?.role === "admin"
+      ? <AdminDashboard/>
+      : user
+       ? <div style={{padding:"40px",textAlign:"center"}}>Access denied. Administrators only.</div>
+       : <Auth mode="login" onAuth={setUser}/>
+    }
+   />
+
+   <Route path="*" element={<Home/>}/>
+  </Routes>
+
+  <Footer/>
+  <AssistantChat/>
+ </>
+}
