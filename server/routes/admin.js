@@ -9,8 +9,10 @@ const router = express.Router();
 router.use(auth);
 
 // Check administrator permissions
+
+// Check administrator permissions
 function requireAdmin(req, res, next) {
-  if (req.user?.role !== "admin") {
+  if (req.user?.role?.toUpperCase() !== "ADMIN") {
     return res.status(403).json({
       error: "Access denied. Administrators only."
     });
@@ -18,6 +20,7 @@ function requireAdmin(req, res, next) {
 
   next();
 }
+
 
 router.use(requireAdmin);
 
