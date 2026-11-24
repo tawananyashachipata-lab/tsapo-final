@@ -1,0 +1,199 @@
+
+.agent-applications {
+  padding: 24px;
+  margin-bottom: 30px;
+}
+
+.applications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.applications-header h2 {
+  color: #183b2a;
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.applications-header p {
+  color: #777;
+  font-size: 14px;
+}
+
+.refresh-btn {
+  background: #edf7f0;
+  color: #16834a;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refresh-btn:hover {
+  background: #d9f0e1;
+}
+
+.applications-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.application-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.application-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.application-top h3 {
+  color: #183b2a;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.application-top p {
+  color: #777;
+  font-size: 13px;
+}
+
+.application-details {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eeeeee;
+}
+
+.application-details p {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 8px 0;
+}
+
+.application-details strong {
+  color: #263b30;
+}
+
+.application-status {
+  padding: 7px 13px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.application-status.approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.application-status.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.application-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.approve-btn,
+.reject-btn {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.approve-btn {
+  background: #16834a;
+  color: white;
+}
+
+.approve-btn:hover {
+  background: #116b3c;
+}
+
+.reject-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.reject-btn:hover {
+  background: #fecaca;
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.empty-applications {
+  background: #f8faf9;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 45px 20px;
+  text-align: center;
+}
+
+.empty-applications h3 {
+  color: #183b2a;
+  margin-bottom: 8px;
+}
+
+.empty-applications p {
+  color: #777;
+  font-size: 14px;
+}
+
+.application-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .agent-applications {
+    padding: 12px;
+  }
+
+  .applications-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .application-top {
+    flex-direction: column;
+  }
+
+  .application-actions {
+    flex-direction: column;
+  }
+
+  .application-actions button {
+    width: 100%;
+  }
+}

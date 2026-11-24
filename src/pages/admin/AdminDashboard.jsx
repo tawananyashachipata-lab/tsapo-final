@@ -1,6 +1,9 @@
 
-import { useEffect, useState } from "react";
+
+
+import React, { useEffect, useState } from "react";
 import "./AdminDashboard.css";
+import AgentApplications from "../../components/AgentApplications";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -26,7 +29,7 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("tsapo_token");
 
       const response = await fetch(
         `${API_URL}/api/admin/dashboard`,
@@ -40,10 +43,21 @@ export default function AdminDashboard() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Unable to load dashboard");
+        throw new Error(
+          result.error || "Unable to load dashboard"
+        );
       }
 
-      setData(result);
+      setData({
+        statistics: result.statistics || {
+          total: 0,
+          pending: 0,
+          approved: 0,
+          rejected: 0
+        },
+        goods: result.goods || []
+      });
+
       setError("");
     } catch (err) {
       setError(err.message);
@@ -58,7 +72,7 @@ export default function AdminDashboard() {
 
   async function updateGoods(id, action, reason = "") {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("tsapo_token");
 
       const response = await fetch(
         `${API_URL}/api/admin/goods/${id}/${action}`,
@@ -83,7 +97,7 @@ export default function AdminDashboard() {
 
       await loadDashboard();
 
-      alert(result.message);
+      alert(result.message || "Action completed successfully.");
     } catch (err) {
       alert(err.message);
     }
@@ -94,57 +108,107 @@ export default function AdminDashboard() {
       filter === "ALL" || item.status === filter;
 
     const matchesSearch =
-      (item.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (item.description || "").toLowerCase().includes(search.toLowerCase());
+      (item.name || "")
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      (item.description || "")
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
     return matchesStatus && matchesSearch;
   });
 
   const cards = [
-    { label: "Total Goods", value: data.statistics.total },
-    { label: "Pending", value: data.statistics.pending },
-    { label: "Approved", value: data.statistics.approved },
-    { label: "Rejected", value: data.statistics.rejected }
+    {
+      label: "Total Goods",
+      value: data.statistics.total
+    },
+    {
+      label: "Pending",
+      value: data.statistics.pending
+    },
+    {
+      label: "Approved",
+      value: data.statistics.approved
+    },
+    {
+      label: "Rejected",
+      value: data.statistics.rejected
+    }
   ];
 
   if (loading) {
-    return <div className="admin-loading">Loading Tsapo Dashboard...</div>;
+    return (
+      <div className="admin-loading">
+        Loading Tsapo Dashboard...
+      </div>
+    );
   }
 
   return (
     <main className="admin-dashboard">
+
       <header className="admin-header">
         <div>
-          <p className="admin-eyebrow">TSAPO MANAGEMENT</p>
+          <p className="admin-eyebrow">
+            TSAPO MANAGEMENT
+          </p>
+
           <h1>Admin Dashboard</h1>
-          <p>Manage and review submitted goods.</p>
+
+          <p>
+            Manage and review submitted goods.
+          </p>
         </div>
 
-        <button onClick={loadDashboard} className="refresh-btn">
+        <button
+          onClick={loadDashboard}
+          className="refresh-btn"
+          type="button"
+        >
           Refresh
         </button>
       </header>
 
-      {error && <div className="admin-error">{error}</div>}
+      {error && (
+        <div className="admin-error">
+          {error}
+        </div>
+      )}
 
+      {/* AGENT APPLICATIONS */}
+      <section className="admin-agent-applications">
+        <AgentApplications />
+      </section>
+
+      {/* STATISTICS */}
       <section className="stats-grid">
         {cards.map((card) => (
-          <article className="stat-card" key={card.label}>
+          <article
+            className="stat-card"
+            key={card.label}
+          >
             <p>{card.label}</p>
             <h2>{card.value}</h2>
           </article>
         ))}
       </section>
 
+      {/* GOODS MANAGEMENT */}
       <section className="goods-section">
+
         <div className="goods-heading">
           <div>
             <h2>Goods Management</h2>
-            <p>Review and manage submitted goods.</p>
+            <p>
+              Review and manage submitted goods.
+            </p>
           </div>
         </div>
 
+        {/* SEARCH AND FILTER */}
         <div className="goods-filters">
+
           <input
             type="search"
             placeholder="Search goods..."
@@ -161,10 +225,14 @@ export default function AdminDashboard() {
             <option value="APPROVED">Approved</option>
             <option value="REJECTED">Rejected</option>
           </select>
+
         </div>
 
+        {/* GOODS TABLE */}
         <div className="goods-table-wrapper">
+
           <table className="goods-table">
+
             <thead>
               <tr>
                 <th>Goods</th>
@@ -176,24 +244,36 @@ export default function AdminDashboard() {
             </thead>
 
             <tbody>
+
               {filteredGoods.map((item) => (
                 <tr key={item.id}>
+
                   <td>{item.name}</td>
+
                   <td>{item.description}</td>
+
                   <td>
-                    <span className={`status ${item.status?.toLowerCase()}`}>
+                    <span
+                      className={`status ${item.status?.toLowerCase()}`}
+                    >
                       {item.status}
                     </span>
                   </td>
+
                   <td>
                     {item.createdAt
-                      ? new Date(item.createdAt).toLocaleDateString()
+                      ? new Date(
+                          item.createdAt
+                        ).toLocaleDateString()
                       : "—"}
                   </td>
+
                   <td>
                     <div className="action-buttons">
+
                       <button
                         className="view-btn"
+                        type="button"
                         onClick={() => setSelectedGoods(item)}
                       >
                         View
@@ -203,9 +283,17 @@ export default function AdminDashboard() {
                         <>
                           <button
                             className="approve-btn"
+                            type="button"
                             onClick={() => {
-                              if (window.confirm("Approve these goods?")) {
-                                updateGoods(item.id, "approve");
+                              if (
+                                window.confirm(
+                                  "Approve these goods?"
+                                )
+                              ) {
+                                updateGoods(
+                                  item.id,
+                                  "approve"
+                                );
                               }
                             }}
                           >
@@ -214,45 +302,83 @@ export default function AdminDashboard() {
 
                           <button
                             className="reject-btn"
+                            type="button"
                             onClick={() => setSelectedGoods(item)}
                           >
                             Reject
                           </button>
                         </>
                       )}
+
                     </div>
                   </td>
+
                 </tr>
               ))}
 
               {filteredGoods.length === 0 && (
                 <tr>
-                  <td colSpan="5">No goods found.</td>
+                  <td colSpan="5">
+                    No goods found.
+                  </td>
                 </tr>
               )}
+
             </tbody>
+
           </table>
+
         </div>
       </section>
 
+      {/* GOODS DETAILS MODAL */}
       {selectedGoods && (
         <div className="modal-overlay">
+
           <div className="goods-modal">
+
             <h2>Goods Details</h2>
 
-            <p><strong>Name:</strong> {selectedGoods.name}</p>
-            <p><strong>Description:</strong> {selectedGoods.description}</p>
-            <p><strong>Status:</strong> {selectedGoods.status}</p>
-            <p><strong>Sender:</strong> {selectedGoods.senderName || "—"}</p>
-            <p><strong>Recipient:</strong> {selectedGoods.recipientName || "—"}</p>
+            <p>
+              <strong>Name:</strong>{" "}
+              {selectedGoods.name}
+            </p>
+
+            <p>
+              <strong>Description:</strong>{" "}
+              {selectedGoods.description}
+            </p>
+
+            <p>
+              <strong>Status:</strong>{" "}
+              {selectedGoods.status}
+            </p>
+
+            <p>
+              <strong>Sender:</strong>{" "}
+              {selectedGoods.senderName || "—"}
+            </p>
+
+            <p>
+              <strong>Recipient:</strong>{" "}
+              {selectedGoods.recipientName || "—"}
+            </p>
 
             {selectedGoods.status === "PENDING" && (
               <>
                 <button
                   className="approve-btn"
+                  type="button"
                   onClick={() => {
-                    if (window.confirm("Approve these goods?")) {
-                      updateGoods(selectedGoods.id, "approve");
+                    if (
+                      window.confirm(
+                        "Approve these goods?"
+                      )
+                    ) {
+                      updateGoods(
+                        selectedGoods.id,
+                        "approve"
+                      );
                     }
                   }}
                 >
@@ -262,14 +388,21 @@ export default function AdminDashboard() {
                 <textarea
                   placeholder="Enter reason for rejection..."
                   value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
+                  onChange={(e) =>
+                    setRejectReason(e.target.value)
+                  }
                 />
 
                 <button
                   className="reject-btn"
+                  type="button"
                   disabled={!rejectReason.trim()}
                   onClick={() => {
-                    if (window.confirm("Reject these goods?")) {
+                    if (
+                      window.confirm(
+                        "Reject these goods?"
+                      )
+                    ) {
                       updateGoods(
                         selectedGoods.id,
                         "reject",
@@ -285,13 +418,16 @@ export default function AdminDashboard() {
 
             <button
               className="close-btn"
+              type="button"
               onClick={() => setSelectedGoods(null)}
             >
               Close
             </button>
+
           </div>
         </div>
       )}
+
     </main>
   );
 }

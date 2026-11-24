@@ -1,12 +1,312 @@
-import React,{useEffect,useState}from'react';import{Link,NavLink,Route,Routes,useNavigate,useParams}from'react-router-dom';import{ArrowRight,Package,MapPin,ShieldCheck,Truck,Menu,X,LogOut,LayoutDashboard,Search,Plus,CheckCircle2,Clock3,Users,Leaf}from'lucide-react';import{api,token}from'./api';import AdminDashboard from "./pages/admin/AdminDashboard";
+import React,{useEffect,useState}from'react';import{Link,NavLink,Route,Routes,useNavigate,useParams}from'react-router-dom';import{ArrowRight,Package,MapPin,ShieldCheck,Truck,Menu,X,LogOut,LayoutDashboard,Search,Plus,CheckCircle2,Clock3,Users,Leaf}from'lucide-react';import{api,token}from'./api';import AdminDashboard from "./pages/admin/AdminDashboard";import AgentDashboard from "./components/AgentDashboard";
+import "./components/AgentDashboard.css";
+import AgentApplication from './components/AgentApplication';
+import './components/AgentApplication.css';
+import BecomeAgent from "./pages/BecomeAgent";
 const money=n=>`$${Number(n||0).toFixed(2)}`;
 function Header({user,onLogout}){const[open,setOpen]=useState(false);return <header className="header"><Link to="/" className="brand"><span className="brandmark"><Package size={22}/></span><span>tsapo<span className="dot">.</span><small>MOVE WITH CONFIDENCE</small></span></Link><button className="mobile-toggle" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button><nav className={open?'nav open':'nav'}><a href="/#services">Services</a><a href="/#how">How it works</a><Link to="/track">Track parcel</Link>{user?<><Link to="/dashboard" className="nav-cta">Dashboard <ArrowRight size={16}/></Link><button className="text-button" onClick={onLogout}>Sign out</button></>:<><Link to="/login" className="nav-login">Log in</Link><Link to="/register" className="nav-cta">Get started <ArrowRight size={16}/></Link></>}</nav></header>}
 function Footer(){return <footer><div className="footer-inner"><div className="brand footer-brand"><span className="brandmark"><Package/></span><span>tsapo<span className="dot">.</span><small>MOVE WITH CONFIDENCE</small></span></div><p>Making every delivery feel effortless.</p><span>© {new Date().getFullYear()} Tsapo. All rights reserved.</span></div></footer>}
 function Home(){const[track,setTrack]=useState('');return <><section className="hero"><div className="hero-orb orb1"/><div className="hero-orb orb2"/><div className="hero-content"><div className="eyebrow"><span/> SMARTER PARCEL DELIVERY</div><h1>Your parcels.<br/><em>Our priority.</em></h1><p className="hero-copy">From pickup to doorstep, Tsapo makes sending and receiving parcels simple, reliable and stress-free.</p><div className="hero-actions"><Link to="/register" className="btn btn-yellow">Send a parcel <ArrowRight size={18}/></Link><a href="#how" className="btn btn-outline">Discover Tsapo</a></div><div className="trust-row"><span><ShieldCheck size={17}/> Reliable handling</span><span><MapPin size={17}/> Track every move</span></div></div><div className="hero-visual"><div className="visual-glow"/><div className="delivery-card"><div className="parcel-top"><span className="mini-icon"><Package/></span><span className="status-pill"><i/> ON THE MOVE</span></div><div className="box-art"><div className="box-face"><span>TSAPO</span><Package size={56}/></div></div><div className="route"><div className="route-line"><i/><b/><i/></div><div className="route-labels"><span>HARARE</span><span>YOUR DOOR</span></div></div><div className="delivery-bottom"><div><small>DELIVERY STATUS</small><strong>Moving safely</strong></div><CheckCircle2 className="success-icon"/></div></div><div className="floating-note"><span><Truck/></span><div><b>Door-to-door</b><small>Delivery made easy</small></div></div></div></section><section className="track-strip"><div><span className="track-icon"><Search/></span><div><b>Where is your parcel?</b><small>Enter your tracking number to get the latest update.</small></div></div><form onSubmit={e=>{e.preventDefault();if(track.trim())location.href='/track?code='+encodeURIComponent(track.trim())}}><input value={track} onChange={e=>setTrack(e.target.value)} placeholder="e.g. TS12345678" aria-label="Tracking number"/><button className="btn btn-green">Track parcel <ArrowRight size={17}/></button></form></section><section className="section" id="services"><div className="section-heading"><span className="eyebrow dark">WHAT WE DO</span><h2>Delivery that works<br/><em>around you.</em></h2><p>Whether it's one important package or daily business deliveries, we've got the journey covered.</p></div><div className="service-grid"><article className="service-card"><span className="service-icon"><Package/></span><h3>Parcel delivery</h3><p>Send packages with a straightforward booking experience and clear delivery updates.</p><Link to="/register">Send a parcel <ArrowRight size={16}/></Link></article><article className="service-card featured"><span className="service-icon"><MapPin/></span><h3>Live tracking</h3><p>Stay informed at every stage, from collection to the final delivery.</p><Link to="/track">Track a parcel <ArrowRight size={16}/></Link></article><article className="service-card"><span className="service-icon"><Truck/></span><h3>Business delivery</h3><p>Keep orders moving with a delivery service built to support growing businesses.</p><Link to="/register">Get started <ArrowRight size={16}/></Link></article></div></section><section className="how-section" id="how"><div className="how-copy"><span className="eyebrow">SIMPLE BY DESIGN</span><h2>Three steps.<br/><em>One smooth journey.</em></h2><p>We've made sending a parcel feel as easy as it should be.</p><Link className="btn btn-yellow" to="/register">Book your delivery <ArrowRight size={17}/></Link></div><div className="steps"><div className="step"><span>01</span><div><h3>Book your parcel</h3><p>Tell us what you're sending and where it needs to go.</p></div></div><div className="step"><span>02</span><div><h3>We collect and move</h3><p>Our delivery team takes care of the journey.</p></div></div><div className="step"><span>03</span><div><h3>Track to delivery</h3><p>Follow progress and know when your parcel arrives.</p></div></div></div></section><section className="cta-band"><div><span className="eyebrow">READY WHEN YOU ARE</span><h2>Let's get it <em>moving.</em></h2></div><Link to="/register" className="btn btn-yellow">Create your account <ArrowRight/></Link></section></>}
 function Auth({mode,onAuth}){const nav=useNavigate();const[form,setForm]=useState({name:'',email:'',phone:'',password:''});const[error,setError]=useState('');const[busy,setBusy]=useState(false);const submit=async e=>{e.preventDefault();setError('');setBusy(true);try{const d=await api('/auth/'+(mode==='login'?'login':'register'),{method:'POST',body:JSON.stringify(form)});localStorage.setItem('tsapo_token',d.token);onAuth(d.user);nav('/dashboard')}catch(e){setError(e.message)}finally{setBusy(false)}};return <main className="auth-wrap"><div className="auth-card"><div className="auth-symbol"><Package/></div><span className="eyebrow dark">{mode==='login'?'WELCOME BACK':'JOIN THE JOURNEY'}</span><h1>{mode==='login'?'Good to see you.':'Create your Tsapo account.'}</h1><p>{mode==='login'?'Sign in to manage and track your deliveries.':'A smoother way to send and receive parcels starts here.'}</p><form onSubmit={submit}>{mode==='register'&&<label>Full name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Your full name"/></label>}<label>Email address<input type="email" required value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="you@example.com"/></label>{mode==='register'&&<label>Phone number <span className="optional">Optional</span><input value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="+263..."/></label>}<label>Password<input type="password" minLength="8" required value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder="At least 8 characters"/></label>{error&&<div className="error">{error}</div>}<button disabled={busy} className="btn btn-green full">{busy?'Please wait...':mode==='login'?'Sign in':'Create account'} <ArrowRight size={17}/></button></form><div className="auth-switch">{mode==='login'?"Don't have an account?":'Already registered?'} <Link to={mode==='login'?'/register':'/login'}>{mode==='login'?'Create one':'Sign in'}</Link></div></div></main>}
 function Track(){const params=new URLSearchParams(location.search);const[code,setCode]=useState(params.get('code')||'');const[data,setData]=useState(null);const[error,setError]=useState('');const[busy,setBusy]=useState(false);const search=async e=>{e?.preventDefault();setError('');setData(null);setBusy(true);try{setData(await api('/parcels/track/'+encodeURIComponent(code.trim())))}catch(e){setError(e.message)}finally{setBusy(false)}};return <main className="page-shell"><div className="page-title"><span className="eyebrow dark">PARCEL TRACKING</span><h1>Every mile, <em>in sight.</em></h1><p>Enter your tracking number to see the latest parcel status.</p></div><form className="track-form" onSubmit={search}><input value={code} onChange={e=>setCode(e.target.value)} placeholder="Enter tracking number" required/><button className="btn btn-green" disabled={busy}>{busy?'Searching...':'Track parcel'} <Search size={17}/></button></form>{error&&<div className="error result-error">{error}</div>}{data?.parcel&&<div className="tracking-result"><div className="result-head"><div><small>TRACKING NUMBER</small><h2>{data.parcel.trackingCode}</h2></div><span className="status-pill">{data.parcel.status.replaceAll('_',' ')}</span></div><div className="route-summary"><div><MapPin/><small>FROM</small><b>{data.parcel.pickupAddress}</b></div><ArrowRight/><div><MapPin/><small>TO</small><b>{data.parcel.deliveryAddress}</b></div></div><h3>Delivery updates</h3><div className="timeline">{data.parcel.events.map(ev=><div className="timeline-item" key={ev.id}><i/><div><b>{ev.status.replaceAll('_',' ')}</b><p>{ev.message}</p><small>{new Date(ev.createdAt).toLocaleString()} {ev.location?' · '+ev.location:''}</small></div></div>)}</div></div>}</main>}
-function Dashboard({user}){const[parcels,setParcels]=useState([]);const[stats,setStats]=useState(null);const[error,setError]=useState('');const[show,setShow]=useState(false);const[form,setForm]=useState({senderName:user.name,senderPhone:user.phone||'',recipientName:'',recipientPhone:'',pickupAddress:'',deliveryAddress:'',description:'',weight:'1'});const load=()=>api('/parcels').then(d=>setParcels(d.parcels)).catch(e=>setError(e.message));useEffect(()=>{load();if(user.role==='ADMIN')api('/admin/overview').then(d=>setStats(d.stats)).catch(()=>{});},[]);const create=async e=>{e.preventDefault();setError('');try{const d=await api('/parcels',{method:'POST',body:JSON.stringify(form)});setParcels([d.parcel,...parcels]);setShow(false);setForm({...form,recipientName:'',recipientPhone:'',pickupAddress:'',deliveryAddress:'',description:''})}catch(e){setError(e.message)}};return <main className="dashboard page-shell"><div className="dash-heading"><div><span className="eyebrow dark">{user.role} PORTAL</span><h1>Hello, <em>{user.name.split(' ')[0]}.</em></h1><p>Here's what's happening with your deliveries.</p></div>{user.role!=='AGENT'&&<button className="btn btn-green" onClick={()=>setShow(!show)}><Plus size={18}/> Book a parcel</button>}</div>{stats&&<div className="stats-grid">{Object.entries(stats).map(([k,v])=><div className="stat-card" key={k}><small>{k.replace(/([A-Z])/g,' $1')}</small><strong>{v}</strong></div>)}</div>}{show&&<form className="booking-card" onSubmit={create}><div className="form-heading"><div><h2>Book a delivery</h2><p>Enter the sender and recipient details.</p></div><button type="button" className="text-button" onClick={()=>setShow(false)}>Close</button></div><div className="form-grid">{[['senderName','Sender name'],['senderPhone','Sender phone'],['recipientName','Recipient name'],['recipientPhone','Recipient phone'],['pickupAddress','Pickup address'],['deliveryAddress','Delivery address'],['description','Parcel description'],['weight','Weight (kg)']].map(([k,l])=><label key={k}>{l}<input required value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})}/></label>)}</div>{error&&<div className="error">{error}</div>}<button className="btn btn-green">Submit booking <ArrowRight size={17}/></button></form>}{error&&!show&&<div className="error">{error}</div>}<div className="list-heading"><h2>{user.role==='AGENT'?'Assigned deliveries':'Your parcels'}</h2><span>{parcels.length} records</span></div>{parcels.length===0?<div className="empty-state"><Package size={36}/><h3>No parcels yet</h3><p>Your bookings and delivery updates will appear here.</p><button className="btn btn-green" onClick={()=>setShow(true)}>Book your first parcel</button></div>:<div className="parcel-list">{parcels.map(p=><div className="parcel-row" key={p.id}><span className="parcel-icon"><Package/></span><div className="parcel-info"><b>{p.trackingCode}</b><small>{p.pickupAddress} → {p.deliveryAddress}</small></div><span className={'status-pill status-'+p.status.toLowerCase()}>{p.status.replaceAll('_',' ')}</span><Link to={'/track?code='+p.trackingCode}>Details <ArrowRight size={15}/></Link>{(user.role==='ADMIN'||user.role==='AGENT')&&<StatusControl parcel={p} onDone={load}/>}</div>)}</div>}</main>}
-function StatusControl({parcel,onDone}){const[status,setStatus]=useState(parcel.status);const[busy,setBusy]=useState(false);return <div className="status-control"><select value={status} onChange={e=>setStatus(e.target.value)}>{['PENDING','CONFIRMED','PICKED_UP','IN_TRANSIT','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'].map(s=><option key={s}>{s}</option>)}</select><button disabled={busy||status===parcel.status} onClick={async()=>{setBusy(true);try{await api('/parcels/'+parcel.id+'/status',{method:'PATCH',body:JSON.stringify({status})});onDone()}catch(e){alert(e.message)}finally{setBusy(false)}}}>Update</button></div>}
+
+
+function Dashboard({user}) {
+  const [parcels, setParcels] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [error, setError] = useState('');
+  const [show, setShow] = useState(false);
+
+  const [form, setForm] = useState({
+    senderName: user.name,
+    senderPhone: user.phone || '',
+    recipientName: '',
+    recipientPhone: '',
+    pickupAddress: '',
+    deliveryAddress: '',
+    description: '',
+    weight: '1'
+  });
+
+  const load = () =>
+    api('/parcels')
+      .then(d => setParcels(d.parcels || []))
+      .catch(e => setError(e.message));
+
+  useEffect(() => {
+    load();
+
+    if (user.role === 'ADMIN') {
+      api('/admin/overview')
+        .then(d => setStats(d.stats))
+        .catch(e => console.error('Could not load statistics:', e));
+    }
+  }, []);
+
+  const create = async e => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      const d = await api('/parcels', {
+        method: 'POST',
+        body: JSON.stringify(form)
+      });
+
+      setParcels(current => [d.parcel, ...current]);
+      setShow(false);
+
+      setForm(current => ({
+        ...current,
+        recipientName: '',
+        recipientPhone: '',
+        pickupAddress: '',
+        deliveryAddress: '',
+        description: ''
+      }));
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  return (
+    <main className="dashboard page-shell">
+
+      <div className="dash-heading">
+        <div>
+          <span className="eyebrow dark">
+            {user.role} PORTAL
+          </span>
+
+          <h1>
+            Hello, <em>{user.name.split(' ')[0]}.</em>
+          </h1>
+
+          <p>Here's what's happening with your deliveries.</p>
+        </div>
+
+        <div className="dashboard-actions">
+
+          {user.role?.toUpperCase() === 'CUSTOMER' && (
+            <Link to="/become-agent" className="btn btn-outline">
+              Become an Agent
+            </Link>
+          )}
+
+          {user.role !== 'AGENT' && (
+            <button
+              className="btn btn-green"
+              onClick={() => setShow(!show)}
+            >
+              <Plus size={18} /> Book a parcel
+            </button>
+          )}
+
+        </div>
+      </div>
+
+      {stats && (
+        <div className="stats-grid">
+          {Object.entries(stats).map(([k, v]) => (
+            <div className="stat-card" key={k}>
+              <small>{k.replace(/([A-Z])/g, ' $1')}</small>
+              <strong>{v}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {show && (
+        <form className="booking-card" onSubmit={create}>
+          <div className="form-heading">
+            <div>
+              <h2>Book a delivery</h2>
+              <p>Enter the sender and recipient details.</p>
+            </div>
+
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => setShow(false)}
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="form-grid">
+            {[
+              ['senderName', 'Sender name'],
+              ['senderPhone', 'Sender phone'],
+              ['recipientName', 'Recipient name'],
+              ['recipientPhone', 'Recipient phone'],
+              ['pickupAddress', 'Pickup address'],
+              ['deliveryAddress', 'Delivery address'],
+              ['description', 'Parcel description'],
+              ['weight', 'Weight (kg)']
+            ].map(([k, l]) => (
+              <label key={k}>
+                {l}
+                <input
+                  required
+                  value={form[k]}
+                  onChange={e =>
+                    setForm({...form, [k]: e.target.value})
+                  }
+                />
+              </label>
+            ))}
+          </div>
+
+          {error && <div className="error">{error}</div>}
+
+          <button className="btn btn-green">
+            Submit booking <ArrowRight size={17} />
+          </button>
+        </form>
+      )}
+
+      {error && !show && (
+        <div className="error">{error}</div>
+      )}
+
+      <div className="list-heading">
+        <h2>
+          {user.role === 'AGENT'
+            ? 'Assigned deliveries'
+            : 'Your parcels'}
+        </h2>
+
+        <span>{parcels.length} records</span>
+      </div>
+
+      {parcels.length === 0 ? (
+        <div className="empty-state">
+          <Package size={36} />
+          <h3>No parcels yet</h3>
+          <p>Your bookings and delivery updates will appear here.</p>
+
+          <button
+            className="btn btn-green"
+            onClick={() => setShow(true)}
+          >
+            Book your first parcel
+          </button>
+        </div>
+      ) : (
+        <div className="parcel-list">
+
+          {parcels.map(p => (
+            <div className="parcel-row" key={p.id}>
+
+              <span className="parcel-icon">
+                <Package size={22} />
+              </span>
+
+              <div className="parcel-info">
+                <b>{p.trackingCode}</b>
+
+                <small>
+                  {p.pickupAddress} → {p.deliveryAddress}
+                </small>
+              </div>
+
+              <span className={`status-pill status-${p.status.toLowerCase()}`}>
+                {p.status.replaceAll('_', ' ')}
+              </span>
+
+              <Link
+                className="parcel-details"
+                to={`/track?code=${encodeURIComponent(p.trackingCode)}`}
+              >
+                View details
+              </Link>
+
+              {(user.role === 'ADMIN' || user.role === 'AGENT') && (
+                <StatusControl
+                  parcel={p}
+                  onDone={load}
+                />
+              )}
+
+            </div>
+          ))}
+
+        </div>
+      )}
+
+    </main>
+  );
+}
+
+
+function StatusControl({parcel, onDone}) {
+  const [status, setStatus] = useState(parcel.status);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setStatus(parcel.status);
+  }, [parcel.status]);
+
+  const updateStatus = async () => {
+    setBusy(true);
+    setError('');
+
+    try {
+      await api(`/parcels/${parcel.id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({status})
+      });
+
+      await onDone();
+    } catch (e) {
+      setError(e.message || 'Could not update parcel status.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="status-control">
+
+      <select
+        value={status}
+        onChange={e => setStatus(e.target.value)}
+        disabled={busy}
+        aria-label={`Update status for ${parcel.trackingCode}`}
+      >
+        {[
+          'PENDING',
+          'CONFIRMED',
+          'PICKED_UP',
+          'IN_TRANSIT',
+          'OUT_FOR_DELIVERY',
+          'DELIVERED',
+          'CANCELLED'
+        ].map(s => (
+          <option key={s} value={s}>
+            {s.replaceAll('_', ' ')}
+          </option>
+        ))}
+      </select>
+
+      <button
+        type="button"
+        onClick={updateStatus}
+        disabled={busy || status === parcel.status}
+      >
+        {busy ? 'Updating...' : 'Update'}
+      </button>
+
+      {error && (
+        <small className="status-error">{error}</small>
+      )}
+
+    </div>
+  );
+}
+
+
 
 
 
@@ -123,11 +423,48 @@ export default function App(){
 
    <Route path="/dashboard" element={user?<Dashboard user={user}/>:<Auth mode="login" onAuth={setUser}/>}/>
 
+   {/* Agent Dashboard */}
+   <Route
+    path="/agent"
+    element={
+     !user
+      ? <Auth mode="login" onAuth={setUser}/>
+      : user.role?.toUpperCase() === "AGENT"
+       ? <AgentDashboard user={user} agentId={user.id}/>
+       : user.role?.toUpperCase() === "ADMIN"
+        ? <AgentDashboard user={user} agentId={user.id} isAdminView={true}/>
+        : <div style={{padding:"40px",textAlign:"center"}}>Access denied. Agents and administrators only.</div>
+    }
+   />
+
+   {/* Become an Agent */}
+   <Route
+    path="/become-agent"
+    element={
+     !user
+      ? <Auth mode="login" onAuth={setUser}/>
+      : user.role?.toUpperCase() === "CUSTOMER"
+       ? <BecomeAgent/>
+       : user.role?.toUpperCase() === "AGENT"
+        ? <div className="page-shell" style={{padding:"40px",textAlign:"center"}}>
+            <h2>You are already a Tsapo Agent!</h2>
+            <p>You can access your agent dashboard here.</p>
+            <Link to="/agent" className="btn btn-green">
+             Go to Agent Dashboard
+            </Link>
+          </div>
+        : <div style={{padding:"40px",textAlign:"center"}}>
+            <h2>Agent Applications</h2>
+            <p>Only customer accounts can apply to become agents.</p>
+          </div>
+    }
+   />
+
    {/* Admin Dashboard */}
    <Route
     path="/admin"
     element={
-     user?.role === "admin"
+     user?.role?.toUpperCase() === "ADMIN"
       ? <AdminDashboard/>
       : user
        ? <div style={{padding:"40px",textAlign:"center"}}>Access denied. Administrators only.</div>

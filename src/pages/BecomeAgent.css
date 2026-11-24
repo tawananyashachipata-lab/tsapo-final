@@ -1,0 +1,87 @@
+
+.become-agent-page {
+  min-height: 80vh;
+  padding: 50px 20px;
+  background: #f7faf8;
+}
+
+.agent-application-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 35px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.06);
+}
+
+.agent-application-container h1 {
+  color: #16834a;
+  margin-bottom: 12px;
+}
+
+.agent-application-container p {
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.agent-application-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.agent-application-container label {
+  font-weight: 600;
+  color: #334155;
+}
+
+.agent-application-container input,
+.agent-application-container textarea {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dbe3df;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.agent-application-container textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.agent-application-container button {
+  padding: 14px;
+  background: #16834a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.agent-application-container button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.success-message {
+  padding: 12px;
+  background: #e8f7ed;
+  color: #166534;
+  border-radius: 8px;
+}
+
+.error-message {
+  padding: 12px;
+  background: #feecec;
+  color: #b91c1c;
+  border-radius: 8px;
+}
+
+.application-status {
+  margin: 20px 0;
+  padding: 15px;
+  background: #edf7f0;
+  border-radius: 8px;
+}

@@ -238,3 +238,132 @@
     font-size: 23px;
   }
 }
+
+
+/* ADMIN PARCEL DASHBOARD */
+
+.parcel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.parcel-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e5ebe4;
+  border-radius: 14px;
+}
+
+.parcel-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  background: #edf7f0;
+  color: #176b3b;
+  border-radius: 12px;
+}
+
+.parcel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.parcel-info b {
+  font-size: 14px;
+  color: #203b2b;
+}
+
+.parcel-info small {
+  color: #718075;
+  font-size: 12px;
+}
+
+.parcel-details {
+  color: #176b3b;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.parcel-details:hover {
+  text-decoration: underline;
+}
+
+.status-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-control select {
+  min-width: 160px;
+  padding: 10px 12px;
+  border: 1px solid #dce5dc;
+  border-radius: 8px;
+  background: white;
+  color: #203b2b;
+  font-size: 13px;
+  appearance: auto;
+}
+
+.status-control select option {
+  background: white;
+  color: #203b2b;
+}
+
+.status-control button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #176b3b;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-control button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status-error {
+  width: 100%;
+  color: #c83c3c;
+  font-size: 12px;
+}
+
+@media (max-width: 650px) {
+  .parcel-row {
+    align-items: flex-start;
+  }
+
+  .parcel-info {
+    min-width: calc(100% - 65px);
+  }
+
+  .parcel-details {
+    margin-left: 60px;
+  }
+
+  .status-control {
+    width: 100%;
+  }
+
+  .status-control select {
+    flex: 1;
+  }
+}
